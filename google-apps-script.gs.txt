@@ -10,18 +10,12 @@
  * 8. Sau khi triển khai, truy cập URL ứng dụng web trên trình duyệt, bạn sẽ thấy "Script is running.".
  **************************************************************************************************/
 
-/**
- * Handles GET requests (e.g., visiting the URL in a browser) to confirm deployment.
- * This function is required for the web app to respond to browser visits.
- */
 function doGet(e) {
   return HtmlService.createHtmlOutput("<b>Script is running.</b><br/>This page confirms the web app is deployed correctly. The app sends data via POST requests.");
 }
 
-/**
- * Handles CORS preflight requests from the browser.
- * This is necessary to allow the web application to communicate with the script.
- */
+// This doOptions function is crucial for handling CORS preflight requests.
+// While our new FormData method might not always trigger it, it's best practice to keep it.
 function doOptions(e) {
   return ContentService.createTextOutput()
     .addHeader("Access-Control-Allow-Origin", "*")
@@ -29,17 +23,14 @@ function doOptions(e) {
     .addHeader("Access-Control-Allow-Headers", "Content-Type");
 }
 
-/**
- * Handles the actual data submission from the web application.
- */
 function doPost(e) {
   try {
-    // Check for postData and contents to prevent errors
-    if (!e || !e.postData || !e.postData.contents) {
-      throw new Error("No data received in POST request.");
+    // When sending FormData, the data is in e.parameter, not e.postData
+    if (!e || !e.parameter || !e.parameter.data) {
+      throw new Error("No data received. Ensure you are sending a 'data' parameter in the form.");
     }
 
-    var requestData = JSON.parse(e.postData.contents);
+    var requestData = JSON.parse(e.parameter.data);
     var sheetName = requestData.sheetName;
     var data = requestData.data;
     
@@ -51,14 +42,12 @@ function doPost(e) {
     var sheet = spreadsheet.getSheetByName(sheetName);
     
     if (!sheet) {
-      // If sheet doesn't exist, create it with headers
       sheet = spreadsheet.insertSheet(sheetName);
       sheet.appendRow(Object.keys(data));
     }
     
     var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
     var rowData = headers.map(function(header) {
-      // Use the value from the data object if it exists, otherwise, leave it blank.
       return data[header] !== undefined ? data[header] : "";
     });
     
@@ -70,7 +59,6 @@ function doPost(e) {
       .addHeader("Access-Control-Allow-Origin", "*");
       
   } catch (error) {
-    // Log the actual error to the Apps Script logger for easier debugging
     Logger.log("Error in doPost: " + error.toString());
     var errorResponse = { "status": "error", "message": error.message };
     return ContentService.createTextOutput(JSON.stringify(errorResponse))

@@ -61,14 +61,15 @@ const postToGoogleSheet = async (data: object): Promise<{success: boolean, messa
   const timeoutId = setTimeout(() => controller.abort(), 15000); // 15-second timeout
 
   try {
+    // Using FormData to bypass complex CORS preflight issues with Google Apps Script.
+    const formData = new FormData();
+    formData.append('data', JSON.stringify(data));
+
     const response = await fetch(GOOGLE_SHEET_APP_SCRIPT_URL, {
       method: 'POST',
       mode: 'cors',
       signal: controller.signal,
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(data),
+      body: formData, // Sending as FormData simplifies the request.
     });
 
     clearTimeout(timeoutId);
@@ -88,10 +89,7 @@ const postToGoogleSheet = async (data: object): Promise<{success: boolean, messa
     if (error.name === 'AbortError') {
         return { success: false, message: 'Yêu cầu hết thời gian. Vui lòng thử lại.' };
     }
-    if (error instanceof TypeError && error.message === 'Failed to fetch') {
-      return { success: false, message: 'Lỗi kết nối: Không thể gửi đến Google Sheet. Vui lòng kiểm tra lại cấu hình CORS trong Apps Script.' };
-    }
-    return { success: false, message: `Gửi dữ liệu thất bại: ${error.message}` };
+    return { success: false, message: `Gửi dữ liệu thất bại: ${error.message}. Vui lòng kiểm tra lại kết nối và cấu hình Google Script.` };
   }
 };
 

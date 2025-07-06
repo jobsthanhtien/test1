@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { User, Role, ProductionReport, DowntimeReport, Machine } from '../types';
 import { ICONS, surfaceProcessOptions } from '../constants';
@@ -174,7 +175,7 @@ const ProductionReportView: React.FC<{user: User}> = ({ user }) => {
                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <Input label="Số lượng kế hoạch (PCS)" name="plannedQty" type="number" value={report.plannedQty || ''} onChange={handleChange} required />
                     <Input label="Số lượng thực tế (PCS)" name="actualQty" type="number" value={report.actualQty || ''} onChange={handleChange} required />
-                    <Input label="Số lượng hàng NG" name="ngQty" type="number" value={report.ngQty || ''} onChange={handleChange} required />
+                    <Input label="Số lượng hàng NG" name="ngQty" type="number" value={report.ngQty || ''} onChange={handleChange} />
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <Input label="Thời gian bắt đầu (24h)" name="startTime" type="text" pattern="([01]?[0-9]|2[0-3]):[0-5][0-9]" placeholder="HH:MM" value={report.startTime} onChange={handleChange} required />
@@ -189,10 +190,7 @@ const ProductionReportView: React.FC<{user: User}> = ({ user }) => {
                     <Input label="Công đoạn khác" name="otherProcess" value={report.otherProcess} onChange={handleChange} />
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                     <Select label="Người thực hiện" name="operator" value={report.operator} onChange={handleChange} required>
-                        <option value="">Chọn người thực hiện</option>
-                        {users.map(u => <option key={u.id} value={u.fullName}>{u.fullName}</option>)}
-                    </Select>
+                     <Input label="Người thực hiện" name="operator" value={report.operator} readOnly className="bg-secondary cursor-not-allowed" />
                      <Select label="Người Giám Sát" name="supervisor" value={report.supervisor} onChange={handleChange} required>
                         <option value="">Chọn người giám sát</option>
                         {users.map(u => <option key={u.id} value={u.fullName}>{u.fullName}</option>)}
@@ -526,16 +524,14 @@ const ProductionReportEditModal: React.FC<{
                     <Input label="Thời gian dự kiến (phút/SP)" name="estimatedTimePerPiece" type="number" value={formData.estimatedTimePerPiece || ''} onChange={handleChange} required />
                     <Input label="Số lượng kế hoạch (PCS)" name="plannedQty" type="number" value={formData.plannedQty || ''} onChange={handleChange} required />
                     <Input label="Số lượng thực tế (PCS)" name="actualQty" type="number" value={formData.actualQty || ''} onChange={handleChange} required />
-                    <Input label="Số lượng hàng NG" name="ngQty" type="number" value={formData.ngQty || ''} onChange={handleChange} required />
+                    <Input label="Số lượng hàng NG" name="ngQty" type="number" value={formData.ngQty || ''} onChange={handleChange} />
                     <Input label="Thời gian bắt đầu (24h)" name="startTime" type="text" pattern="([01]?[0-9]|2[0-3]):[0-5][0-9]" placeholder="HH:MM" value={formData.startTime} onChange={handleChange} required />
                     <Input label="Thời gian kết thúc (24h)" name="endTime" type="text" pattern="([01]?[0-9]|2[0-3]):[0-5][0-9]" placeholder="HH:MM" value={formData.endTime} onChange={handleChange} required />
                     <Select label="Công đoạn Gia Công Bề Mặt" name="surfaceProcess" value={formData.surfaceProcess} onChange={handleChange}>
                        {surfaceProcessOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
                     </Select>
                     <Input label="Công đoạn khác" name="otherProcess" value={formData.otherProcess} onChange={handleChange} />
-                     <Select label="Người thực hiện" name="operator" value={formData.operator} onChange={handleChange} required>
-                        {allUsers.map(u => <option key={u.id} value={u.fullName}>{u.fullName}</option>)}
-                    </Select>
+                     <Input label="Người thực hiện" name="operator" value={formData.operator} readOnly className="bg-secondary cursor-not-allowed" />
                      <Select label="Người Giám Sát" name="supervisor" value={formData.supervisor} onChange={handleChange} required>
                         {allUsers.map(u => <option key={u.id} value={u.fullName}>{u.fullName}</option>)}
                     </Select>
