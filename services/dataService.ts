@@ -1,3 +1,4 @@
+
 import { User, Machine, ProductionReport, DowntimeReport, Role } from '../types';
 import { DEFAULT_USERS, DEFAULT_MACHINES, GOOGLE_SHEET_APP_SCRIPT_URL } from '../constants';
 
@@ -87,6 +88,9 @@ const postToGoogleSheet = async (data: object): Promise<{success: boolean, messa
     if (error.name === 'AbortError') {
         return { success: false, message: 'Yêu cầu hết thời gian. Vui lòng thử lại.' };
     }
+    if (error instanceof TypeError && error.message === 'Failed to fetch') {
+      return { success: false, message: 'Lỗi kết nối: Không thể gửi đến Google Sheet. Vui lòng kiểm tra lại cấu hình CORS trong Apps Script.' };
+    }
     return { success: false, message: `Gửi dữ liệu thất bại: ${error.message}` };
   }
 };
@@ -161,55 +165,17 @@ export const submitDowntimeReport = async (report: DowntimeReport) => {
     }
     return result;
 };
+
 /*
-    --- Google Apps Script Setup Guide ---
+    ================================================================================
+    === HƯỚNG DẪN CÀI ĐẶT GOOGLE APPS SCRIPT ===
+    ================================================================================
 
-    To make this work, you need to create a Google Apps Script connected to your Google Sheet.
+    Lỗi bạn gặp phải là do sao chép nhầm mã. Để khắc phục, hãy làm theo các bước sau:
 
-    1. Open your Google Sheet.
-    2. Go to Extensions > Apps Script.
-    3. Paste the code below into the `Code.gs` file.
-    4. Click "Deploy" > "New deployment".
-    5. Select "Web app" as the type.
-    6. In "Who has access", select "Anyone". **This makes your sheet publicly writable through the script.**
-    7. Click "Deploy".
-    8. Copy the "Web app URL".
-    9. Paste this URL into the `GOOGLE_SHEET_APP_SCRIPT_URL` constant in `constants.tsx`.
-
-    --- Apps Script Code (Code.gs) ---
-
-    function doPost(e) {
-      try {
-        var requestData = JSON.parse(e.postData.contents);
-        var sheetName = requestData.sheetName;
-        var data = requestData.data;
-        
-        if (!sheetName || !data) {
-          throw new Error("Invalid request format. 'sheetName' and 'data' are required.");
-        }
-        
-        var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
-        if (!sheet) {
-          // If sheet doesn't exist, create it with headers
-          sheet = SpreadsheetApp.getActiveSpreadsheet().insertSheet(sheetName);
-          sheet.appendRow(Object.keys(data));
-        }
-        
-        var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
-        var rowData = headers.map(function(header) {
-          return data[header] !== undefined ? data[header] : "";
-        });
-        
-        sheet.appendRow(rowData);
-        
-        return ContentService
-          .createTextOutput(JSON.stringify({ "status": "success", "message": "Row added to " + sheetName }))
-          .setMimeType(ContentService.MimeType.JSON);
-          
-      } catch (error) {
-        return ContentService
-          .createTextOutput(JSON.stringify({ "status": "error", "message": error.message }))
-          .setMimeType(ContentService.MimeType.JSON);
-      }
-    }
+    1. Mở file có tên là `google-apps-script.gs.txt` trong cây thư mục của ứng dụng.
+    2. Sao chép TOÀN BỘ nội dung của file đó.
+    3. Dán vào file `Code.gs` trong trình soạn thảo Google Apps Script của bạn
+       (nhớ xóa hết mã cũ đi trước).
+    4. Triển khai lại phiên bản mới.
 */

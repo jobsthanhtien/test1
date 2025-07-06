@@ -1,0 +1,59 @@
+/**************************************************************************************************
+ * HƯỚNG DẪN:
+ * 1. Mở file này.
+ * 2. Nhấn Ctrl+A (hoặc Cmd+A trên Mac) để chọn TOÀN BỘ nội dung.
+ * 3. Nhấn Ctrl+C (hoặc Cmd+C) để sao chép.
+ * 4. Quay lại trình soạn thảo Google Apps Script (file Code.gs).
+ * 5. Xóa hết mã cũ trong Code.gs.
+ * 6. Nhấn Ctrl+V (hoặc Cmd+V) để dán mã mới vào.
+ * 7. Triển khai lại phiên bản mới (Deploy > Manage Deployments > Edit > New Version > Deploy).
+ **************************************************************************************************/
+
+// Handles CORS preflight requests from the browser.
+function doOptions(e) {
+  return ContentService.createTextOutput()
+    .addHeader("Access-Control-Allow-Origin", "*")
+    .addHeader("Access-control-Allow-Methods", "POST, OPTIONS")
+    .addHeader("Access-Control-Allow-Headers", "Content-Type");
+}
+
+function doPost(e) {
+  try {
+    var requestData = JSON.parse(e.postData.contents);
+    var sheetName = requestData.sheetName;
+    var data = requestData.data;
+    
+    if (!sheetName || !data) {
+      throw new Error("Invalid request format. 'sheetName' and 'data' are required.");
+    }
+    
+    var spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+    var sheet = spreadsheet.getSheetByName(sheetName);
+    
+    if (!sheet) {
+      // If sheet doesn't exist, create it with headers
+      sheet = spreadsheet.insertSheet(sheetName);
+      sheet.appendRow(Object.keys(data));
+    }
+    
+    var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+    var rowData = headers.map(function(header) {
+      return data[header] !== undefined ? data[header] : "";
+    });
+    
+    sheet.appendRow(rowData);
+    
+    var response = { "status": "success", "message": "Row added to " + sheetName };
+    return ContentService.createTextOutput(JSON.stringify(response))
+      .setMimeType(ContentService.MimeType.JSON)
+      .addHeader("Access-Control-Allow-Origin", "*");
+      
+  } catch (error) {
+    // Log the actual error to the Apps Script logger for easier debugging
+    Logger.log(error.toString());
+    var errorResponse = { "status": "error", "message": error.message };
+    return ContentService.createTextOutput(JSON.stringify(errorResponse))
+      .setMimeType(ContentService.MimeType.JSON)
+      .addHeader("Access-Control-Allow-Origin", "*");
+  }
+}
