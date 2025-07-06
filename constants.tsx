@@ -8,6 +8,7 @@ export const GOOGLE_SHEET_APP_SCRIPT_URL = 'https://script.google.com/macros/s/A
 export const DEFAULT_USERS: User[] = [
   { id: 'user-1', username: 'admin', password: 'password', fullName: 'Admin User', role: Role.Admin },
   { id: 'user-2', username: 'operator1', password: 'password', fullName: 'Operator One', role: Role.Operator },
+  { id: 'user-3', username: '1', password: '1', fullName: '1', role: Role.Operator, defaultMachineId: 'machine-1' },
 ];
 
 export const DEFAULT_MACHINES: Machine[] = [
