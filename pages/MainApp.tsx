@@ -288,9 +288,18 @@ const UserManagementView: React.FC = () => {
             delete userToSave.defaultMachineId;
         }
 
-        if(userToSave.id) { // Editing existing
+        if(userToSave.id) { // Editing existing user
+            const existingUser = users.find(u => u.id === userToSave.id);
+            if (!existingUser) return; // Should not happen, but good practice
+
+            // If password field was left empty during edit, keep the old password
+            if (!userToSave.password) {
+                userToSave.password = existingUser.password;
+            }
+
             updatedUsers = users.map(u => u.id === userToSave.id ? userToSave : u);
-        } else { // Adding new
+        } else { // Adding new user
+            // Password is required for new users by the form, so no special handling needed
             const newUser = { ...userToSave, id: `user-${Date.now()}`};
             updatedUsers = [...users, newUser];
         }
