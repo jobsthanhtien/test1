@@ -1,0 +1,5 @@
+{
+  "name": "CNC Operations Reporting",
+  "description": "A web application for logging daily CNC machine operations and downtime, and submitting the data to a Google Sheet. Includes user and machine management features for administrators.",
+  "requestFramePermissions": []
+}
